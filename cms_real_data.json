@@ -1,0 +1,121 @@
+{
+  "date": "2026-03-31",
+  "metrics": {
+    "in_call": 13,
+    "total_calls": 678,
+    "avg_aht": "03:28",
+    "avg_acw": "00:00",
+    "queue_waiting": 24,
+    "escalated_cases": 7,
+    "callbacks_scheduled": 19,
+    "isl_percent": 92,
+    "abandoned_calls": 6,
+    "abandon_percent": 8.5
+  },
+  "agents": [
+    {
+      "rank": 1,
+      "name": "Tanawin Suwanprateep",
+      "calls": 59,
+      "aht": "03:25",
+      "acw": "00:00",
+      "aux": "10:08"
+    },
+    {
+      "rank": 2,
+      "name": "Pichamon Sriinthara",
+      "calls": 59,
+      "aht": "03:45",
+      "acw": "00:00",
+      "aux": "01:38"
+    },
+    {
+      "rank": 3,
+      "name": "Sirida Boonsoong",
+      "calls": 46,
+      "aht": "05:25",
+      "acw": "00:00",
+      "aux": "27:58"
+    },
+    {
+      "rank": 4,
+      "name": "Seksan Sattra",
+      "calls": 59,
+      "aht": "03:37",
+      "acw": "00:00",
+      "aux": "22:13"
+    },
+    {
+      "rank": 5,
+      "name": "Suwanna Changoram",
+      "calls": 64,
+      "aht": "03:12",
+      "acw": "00:00",
+      "aux": "10:43"
+    },
+    {
+      "rank": 6,
+      "name": "Tawatchai Pila",
+      "calls": 37,
+      "aht": "04:25",
+      "acw": "00:00",
+      "aux": "02:17"
+    },
+    {
+      "rank": 7,
+      "name": "Aukarapol Y",
+      "calls": 71,
+      "aht": "02:53",
+      "acw": "00:00",
+      "aux": "39:41"
+    },
+    {
+      "rank": 8,
+      "name": "Sutthirat Phaothong",
+      "calls": 69,
+      "aht": "03:04",
+      "acw": "00:00",
+      "aux": "12:11"
+    },
+    {
+      "rank": 9,
+      "name": "Atiwit Juntaburt",
+      "calls": 55,
+      "aht": "02:30",
+      "acw": "00:00",
+      "aux": "35:41"
+    },
+    {
+      "rank": 10,
+      "name": "Siriyakorn Sadubsarn",
+      "calls": 0,
+      "aht": "00:00",
+      "acw": "00:00",
+      "aux": "06:43"
+    },
+    {
+      "rank": 11,
+      "name": "Phatcha Worasakkulch",
+      "calls": 67,
+      "aht": "03:24",
+      "acw": "00:00",
+      "aux": "11:57"
+    },
+    {
+      "rank": 12,
+      "name": "Rungthip Kaewchompo",
+      "calls": 40,
+      "aht": "02:50",
+      "acw": "00:00",
+      "aux": "02:46"
+    },
+    {
+      "rank": 13,
+      "name": "Thitiya SaeUang",
+      "calls": 52,
+      "aht": "03:53",
+      "acw": "00:00",
+      "aux": "12:41"
+    }
+  ]
+}

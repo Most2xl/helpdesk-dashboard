@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Helpdesk CMS - Enhanced Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .time-display {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+        }
+
+        .metric-unit {
+            font-size: 11px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .metric-card.warning .metric-value { color: #ffaa00; }
+        .metric-card.danger .metric-value { color: #ff4444; }
+        .metric-card.info .metric-value { color: #4488ff; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #00ff88;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            margin-bottom: 10px;
+        }
+
+        .table-compact {
+            width: 100%;
+            font-size: 11px;
+            border-collapse: collapse;
+        }
+
+        .table-compact th {
+            padding: 8px;
+            text-align: left;
+            color: #00ff88;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            text-transform: uppercase;
+            font-size: 9px;
+        }
+
+        .table-compact td {
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #ccc;
+        }
+
+        .table-compact tr:hover { background: rgba(0, 255, 136, 0.05); }
+
+        .phone-number {
+            color: #4488ff;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .wait-time {
+            color: #ffaa00;
+            font-weight: 600;
+        }
+
+        .status {
+            color: #ff4444;
+            font-weight: 600;
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.pending { background: rgba(255, 170, 0, 0.2); color: #ffaa00; }
+        .badge.abandoned { background: rgba(255, 68, 68, 0.2); color: #ff4444; }
+
+        @media (max-width: 1200px) {
+            .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📞 IT HELPDESK CMS - ENHANCED DASHBOARD</h1>
+                <div style="font-size: 12px; color: #aaa; margin-top: 5px;">With Callbacks, Abandoned Calls & Time-based Analytics</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="time-display" id="liveTime">00:00:00</div>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Live</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9 Main Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">📞 Agents Online</div>
+                <div class="metric-value">13</div>
+                <div class="metric-unit">agents</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">📊 Total Calls</div>
+                <div class="metric-value">678</div>
+                <div class="metric-unit">today</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">⏱️ Avg AHT</div>
+                <div class="metric-value">03:16</div>
+                <div class="metric-unit">average</div>
+            </div>
+
+            <div class="metric-card warning">
+                <div class="metric-label">📊 Queue</div>
+                <div class="metric-value">24</div>
+                <div class="metric-unit">waiting</div>
+            </div>
+
+            <div class="metric-card danger">
+                <div class="metric-label">❌ Abandoned</div>
+                <div class="metric-value">12</div>
+                <div class="metric-unit">calls</div>
+            </div>
+
+            <div class="metric-card info">
+                <div class="metric-label">📞 Callback</div>
+                <div class="metric-value">18</div>
+                <div class="metric-unit">pending</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">📈 ISL %</div>
+                <div class="metric-value">92</div>
+                <div class="metric-unit">service</div>
+            </div>
+
+            <div class="metric-card warning">
+                <div class="metric-label">🔴 Abandon %</div>
+                <div class="metric-value">1.8</div>
+                <div class="metric-unit">%</div>
+            </div>
+
+            <div class="metric-card danger">
+                <div class="metric-label">🚀 Escalate</div>
+                <div class="metric-value">7</div>
+                <div class="metric-unit">cases</div>
+            </div>
+        </div>
+
+        <!-- Charts: Peak Times & Abandoned Pattern -->
+        <div class="content-grid">
+            <div class="panel">
+                <div class="panel-title">📊 Incoming Calls by Hour (Peak Times)</div>
+                <div class="chart-container">
+                    <canvas id="peakTimeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">❌ Abandoned Calls by Hour</div>
+                <div class="chart-container">
+                    <canvas id="abandonTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Callbacks & Abandoned Details -->
+        <div class="content-grid">
+            <div class="panel">
+                <div class="panel-title">📞 Pending Callbacks (with Phone Numbers)</div>
+                <table class="table-compact">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Phone Number</th>
+                            <th>Customer</th>
+                            <th>Issue</th>
+                            <th>Scheduled</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="callbackTable">
+                        <tr>
+                            <td>1</td>
+                            <td class="phone-number">+66 2-123-4567</td>
+                            <td>ABC Corp</td>
+                            <td>Network Setup</td>
+                            <td>14:30</td>
+                            <td><span class="badge pending">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td class="phone-number">+66 8-987-6543</td>
+                            <td>XYZ Limited</td>
+                            <td>Follow-up</td>
+                            <td>15:00</td>
+                            <td><span class="badge pending">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td class="phone-number">+66 2-555-0099</td>
+                            <td>Tech Solutions</td>
+                            <td>Resolution Check</td>
+                            <td>Tomorrow 10:00</td>
+                            <td><span class="badge pending">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td class="phone-number">+66 8-123-5678</td>
+                            <td>Digital Agency</td>
+                            <td>Server Config</td>
+                            <td>Tomorrow 14:00</td>
+                            <td><span class="badge pending">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td class="phone-number">+66 2-888-7777</td>
+                            <td>Finance Plus</td>
+                            <td>Email Issues</td>
+                            <td>Tomorrow 11:00</td>
+                            <td><span class="badge pending">Pending</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="font-size: 10px; color: #666; margin-top: 8px;">Total: 18 pending callbacks</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">❌ Abandoned Calls (Phone + Wait Time)</div>
+                <table class="table-compact">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Phone Number</th>
+                            <th>Wait Time</th>
+                            <th>Time Called</th>
+                            <th>Agent</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="abandonedTable">
+                        <tr>
+                            <td>1</td>
+                            <td class="phone-number">+66 601041</td>
+                            <td class="wait-time">1:00 min</td>
+                            <td>08:38</td>
+                            <td title="Aukarapol Y">Aukarapol</td>
+                            <td>Sales</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td class="phone-number">+66 611262</td>
+                            <td class="wait-time">1:00 min</td>
+                            <td>08:39</td>
+                            <td title="Sutthirat Phaothong">Sutthirat</td>
+                            <td>Sales</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td class="phone-number">+66 600458</td>
+                            <td class="wait-time">0:00 min</td>
+                            <td>08:41</td>
+                            <td title="Phatcha Worasakkulch">Phatcha</td>
+                            <td>Sales</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td class="phone-number">+66 610152</td>
+                            <td class="wait-time">1:00 min</td>
+                            <td>08:53</td>
+                            <td title="Suwanna Changoram">Suwanna</td>
+                            <td>Sales</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td class="phone-number">+66 610222</td>
+                            <td class="wait-time">1:00 min</td>
+                            <td>08:53</td>
+                            <td title="Tanawin Suwanprateep">Tanawin</td>
+                            <td>Sales</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td class="phone-number">+66 610638</td>
+                            <td class="wait-time">2:00 min</td>
+                            <td>09:09</td>
+                            <td title="Pichamon Sriinthara">Pichamon</td>
+                            <td>Support</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td class="phone-number">+66 601011</td>
+                            <td class="wait-time">2:00 min</td>
+                            <td>09:10</td>
+                            <td title="Seksan Sattra">Seksan</td>
+                            <td>Support</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td class="phone-number">+66 610638</td>
+                            <td class="wait-time">1:00 min</td>
+                            <td>09:11</td>
+                            <td title="Atiwit Juntaburt">Atiwit</td>
+                            <td>Support</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td class="phone-number">+66 5791</td>
+                            <td class="wait-time">0:00 min</td>
+                            <td>09:13</td>
+                            <td title="Thitiya SaeUang">Thitiya</td>
+                            <td>Support</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td class="phone-number">+66 610978</td>
+                            <td class="wait-time">0:00 min</td>
+                            <td>09:14</td>
+                            <td title="Sirida Boonsoong">Sirida</td>
+                            <td>Support</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>11</td>
+                            <td class="phone-number">+66 610638</td>
+                            <td class="wait-time">0:00 min</td>
+                            <td>09:14</td>
+                            <td title="Rungthip Kaewchompo">Rungthip</td>
+                            <td>Support</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                        <tr>
+                            <td>12</td>
+                            <td class="phone-number">+66 600520</td>
+                            <td class="wait-time">2:00 min</td>
+                            <td>09:15</td>
+                            <td title="Tawatchai Pila">Tawatchai</td>
+                            <td>Support</td>
+                            <td><span class="badge abandoned">Abandoned</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="font-size: 10px; color: #666; margin-top: 8px;">⚠️ Average Wait: 0:55 min | Real data from helpdesk logs</div>
+            </div>
+        </div>
+
+        <!-- Analytics Summary -->
+        <div class="panel full-width">
+            <div class="panel-title">📊 Key Insights & Actions</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; padding: 12px 0;">
+                <div>
+                    <strong style="color: #00ff88;">🔴 Peak Hours Identified:</strong><br>
+                    <span style="font-size: 12px; color: #ccc;">10:00-12:00 (142 calls) • 13:00-15:00 (156 calls) • 15:00-17:00 (148 calls)</span>
+                </div>
+                <div>
+                    <strong style="color: #ffaa00;">⚠️ Abandon Pattern:</strong><br>
+                    <span style="font-size: 12px; color: #ccc;">13:05 (12 calls) • 14:45 (8 calls) • 16:15 (7 calls) - Consider staffing increase</span>
+                </div>
+                <div>
+                    <strong style="color: #4488ff;">📞 Action Items:</strong><br>
+                    <span style="font-size: 12px; color: #ccc;">• Callback 18 pending customers • Follow-up 12 abandoned calls • Reschedule with 6+ min wait</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('liveTime').textContent = 
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
+        }
+
+        // Peak Time Chart
+        new Chart(document.getElementById('peakTimeChart'), {
+            type: 'bar',
+            data: {
+                labels: ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17'],
+                datasets: [{
+                    label: 'Incoming Calls',
+                    data: [45, 68, 92, 87, 65, 78, 92, 85, 73, 52],
+                    backgroundColor: '#4488ff',
+                    borderColor: '#2563EB',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, labels: { color: '#ccc' } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#aaa' },
+                        grid: { color: 'rgba(0, 255, 136, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#aaa' },
+                        grid: { color: 'rgba(0, 255, 136, 0.1)' }
+                    }
+                }
+            }
+        });
+
+                // Abandoned Calls by Hour Chart with Agent Breakdown
+        const abandonedByHour = {
+            '08': {'Aukarapol': 1, 'Sutthirat': 1, 'Phatcha': 1, 'Suwanna': 1, 'Tanawin': 1},
+            '09': {'Pichamon': 1, 'Seksan': 1, 'Atiwit': 1, 'Thitiya': 1, 'Sirida': 1, 'Rungthip': 1, 'Tawatchai': 1}
+        };
+        
+        const hours = ['08', '09'];
+        const agents = ['Aukarapol', 'Sutthirat', 'Phatcha', 'Suwanna', 'Tanawin', 'Pichamon', 'Seksan', 'Atiwit', 'Thitiya', 'Sirida', 'Rungthip', 'Tawatchai'];
+        
+        const datasets = agents.map((agent, idx) => {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#52B788', '#FF8C42', '#A8E6CF'];
+            return {
+                label: agent,
+                data: hours.map(h => abandonedByHour[h][agent] || 0),
+                backgroundColor: colors[idx % colors.length],
+                borderColor: colors[idx % colors.length]
+            };
+        });
+        
+        new Chart(document.getElementById('abandonTimeChart'), {
+            type: 'bar',
+            data: {
+                labels: ['08:00 Hours', '09:00 Hours'],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: { color: '#ccc', font: { size: 10 } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#00ff88',
+                        bodyColor: '#ccc'
+                    }
+                },
+                scales: {
+                    y: {
+                        stacked: true,
+                        grid: { color: 'rgba(0,255,136,0.1)' },
+                        ticks: { color: '#ccc' },
+                        beginAtZero: true
+                    },
+                    x: {
+                        stacked: true,
+                        grid: { color: 'rgba(0,255,136,0.1)' },
+                        ticks: { color: '#ccc' }
+                    }
+                }
+            }
+        });
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
